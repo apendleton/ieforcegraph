@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+        <script type="text/javascript" src="/graphcalc.js"></script>
+        <script type="text/javascript" src="/jquery.svg.min.js"></script>
+        <script type="text/javascript" src="/underscore-min.js"></script>
+        <script type="text/javascript">
+            $(function() {
+                var width = 800;
+                var height = 800;
+                
+                var minRadius = width / 50;
+                var maxRadius = minRadius * 5;
+                
+                var minX = 0.1 * width;
+                var maxX = 0.9 * width;
+                var minY = 0.1 * height;
+                var maxY = 0.9 * height;
+                
+                var epsilon = 0.1;
+                var force_cutoff = width / 500;
+                
+                var regScale = function(val, minTo, maxTo) {
+                    return val * (maxTo - minTo) + minTo;
+                }
+                
+                var svg = $('#demo').css({'width': width + 'px', 'height': height + 'px'}).svg({width: width, height: height, onLoad: function(svg) {
+                    $.getJSON('/data', function(data) {
+                        // set the initial values
+                        $.each(data.nodes, function(idx, node) {
+                            node.pos = {
+                                x: regScale(Math.random(), minX, maxX),
+                                y: regScale(Math.random(), minY, maxY)
+                            }
+                            node.radius = regScale(node.size, minRadius, maxRadius);
+                        })
+                        
+                        // calculate edges
+                        var weights = {};
+                        $.each(data.nodes, function(idx, thisNode) {
+                            if (!weights[thisNode.id]) weights[thisNode.id] = {}
+                            $.each(data.nodes, function(idx, otherNode) {
+                                if (!weights[otherNode.id]) weights[otherNode.id] = {}
+                                if (thisNode == otherNode) {
+                                    weights[thisNode.id][otherNode.id] = 0;
+                                } else if (!weights[thisNode.id][otherNode.id]) {
+                                    var weight = data.edges[thisNode.id][otherNode.id] * width * 0.75 + 2 * (thisNode.radius + otherNode.radius);
+                                    weights[thisNode.id][otherNode.id] = weight;
+                                    weights[otherNode.id][thisNode.id] = weight;
+                                }
+                            })
+                        });
+                        
+                        graphcalc.run(data.nodes, weights, epsilon, force_cutoff);
+                        
+                        // draw nodes
+                        $.each(data.nodes, function(idx, node) {
+                            svg.circle(node.pos.x, node.pos.y, node.radius, {id: node.id, fill: 'rgb(' + parseInt(255 * node.color) + ', 0, 0)', stroke: '#000000', strokeWidth: 1, opacity: 0.75});
+                        });
+                    })
+                }})
+            })
+        </script>
+    </head>
+    <body>
+        <div id="demo"></div>
+    </body>
+</html>

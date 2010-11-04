@@ -7,15 +7,13 @@ var width = 500;
 var height = 500;
 var epsilon = 0.01;
 var force_cutoff = 1;
-var node_count = 50;
+var node_count = 10;
 
 var Node = function(id) {
     this.id = id;
     
-    this.pos = {x: Math.random() * width, y: Math.random() * height};
-    this.force = {x: 0, y: 0};
     this.color = Math.random();
-    this.radius = 5 + (Math.random() * 20);
+    this.size = Math.random();
 }
 
 var init = function() {
@@ -32,7 +30,7 @@ var init = function() {
             if (thisNode == otherNode) {
                 edges[thisNode.id][otherNode.id] = 0;
             } else if (!edges[thisNode.id][otherNode.id]) {
-                var weight = (Math.abs(thisNode.color - otherNode.color) * 0.75 * width) + (2 * (thisNode.radius + otherNode.radius));
+                var weight = Math.abs(thisNode.color - otherNode.color);
                 edges[thisNode.id][otherNode.id] = weight;
                 edges[otherNode.id][thisNode.id] = weight;
             }
@@ -48,7 +46,6 @@ app.get('/', function(req, res) { res.sendfile(__dirname + '/public/index.html')
 
 app.get('/data', function(req, res) {
     var data = init();
-    graphcalc.run(data.nodes, data.edges, epsilon, force_cutoff)
     
     res.header('Content-Type', 'application/json');
     res.send(JSON.stringify(data));
