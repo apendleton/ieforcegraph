@@ -1,4 +1,4 @@
-if (require) var underscore = require('underscore');
+if (typeof require != 'undefined') var underscore = require('underscore');
 
 graphcalc = {
     distance: function(pos1, pos2) {
@@ -59,4 +59,4 @@ graphcalc = {
     }
 }
 
-if (exports) _.extend(exports, graphcalc);
+if (typeof exports != 'undefined') _.extend(exports, graphcalc);

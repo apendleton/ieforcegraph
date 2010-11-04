@@ -42,15 +42,16 @@ var init = function() {
 }
 
 var app = express.createServer();
+app.use(express.staticProvider(__dirname + '/public'));
 
-app.get('/', function(req, res) {
+app.get('/', function(req, res) { res.sendfile(__dirname + '/public/index.html'); })
+
+app.get('/data', function(req, res) {
     var data = init();
     graphcalc.run(data.nodes, data.edges, epsilon, force_cutoff)
-    res.header('Content-Type', 'image/svg+xml');
-    res.render('forcegraph.svg.ejs', {
-        locals: data,
-        layout: false
-    })
+    
+    res.header('Content-Type', 'application/json');
+    res.send(JSON.stringify(data));
 })
 
 app.listen(3000);
