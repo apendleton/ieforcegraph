@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.2//EN" "http://www.w3.org/Graphics/SVG/1.2/DTD/svg12.dtd">
+
+<svg width="500px" height="500px" xmlns="http://www.w3.org/2000/svg">
+<% for (var i=0; i<nodes.length; i++) { %>
+    <circle cx="<%= nodes[i].pos.x %>" cy="<%= nodes[i].pos.y %>" r="<%= nodes[i].radius %>" fill="rgb(<%= parseInt(nodes[i].color * 255) %>, 0, 0)" stroke="#000000" style="fill-opacity: 0.75; stroke-width: 1px;" />
+<% } %>
+</svg>
