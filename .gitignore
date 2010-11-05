@@ -1,2 +1,5 @@
 .monitor
 nodemon-ignore
+data/*.csv
+data/*.sqlite3
+*.pyc
