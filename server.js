@@ -7,7 +7,7 @@ var width = 500;
 var height = 500;
 var epsilon = 0.01;
 var force_cutoff = 1;
-var node_count = 10;
+var node_count = 50;
 
 var Node = function(id) {
     this.id = id;

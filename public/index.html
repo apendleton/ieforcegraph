@@ -19,8 +19,7 @@
                 var minY = 0.1 * height;
                 var maxY = 0.9 * height;
                 
-                var epsilon = 0.1;
-                var force_cutoff = width / 500;
+                var force_cutoff = width / 50;
                 
                 var regScale = function(val, minTo, maxTo) {
                     return val * (maxTo - minTo) + minTo;
@@ -28,6 +27,8 @@
                 
                 var svg = $('#demo').css({'width': width + 'px', 'height': height + 'px'}).svg({width: width, height: height, onLoad: function(svg) {
                     $.getJSON('/data', function(data) {
+                        var epsilon = 1/data.nodes.length;
+                        
                         // set the initial values
                         $.each(data.nodes, function(idx, node) {
                             node.pos = {
