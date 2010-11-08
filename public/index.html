@@ -26,15 +26,23 @@
                 var minY = 0.1 * height;
                 var maxY = 0.9 * height;
                 
-                var force_cutoff = width / 50;
+                var force_cutoff = width / 100;
                 
                 var regScale = function(val, minTo, maxTo) {
                     return val * (maxTo - minTo) + minTo;
                 }
                 
+                var scale = function(val, minFrom, maxFrom, minTo, maxTo) {
+                    return ((val - minFrom) / (maxFrom - minFrom)) * (maxTo - minTo) + minTo;
+                }
+                
                 var svg = $('#demo').css({'width': width + 'px', 'height': height + 'px'}).svg({width: width, height: height, onLoad: function(svg) {
                     $.getJSON('/data', function(data) {
                         var epsilon = 1/data.nodes.length;
+                        
+                        var totals = _.map(data.nodes, function(item) { return item.total; });
+                        var minTotal = _.min(totals);
+                        var maxTotal = _.max(totals);
                         
                         // set the initial values
                         $.each(data.nodes, function(idx, node) {
@@ -42,7 +50,8 @@
                                 x: regScale(Math.random(), minX, maxX),
                                 y: regScale(Math.random(), minY, maxY)
                             }
-                            node.radius = regScale(node.size, minRadius, maxRadius);
+                            node.radius = scale(node.total, minTotal, maxTotal, minRadius, maxRadius);
+                            node.color = node.party == 'R' ? 1 : 0;
                         })
                         
                         // calculate edges
@@ -54,7 +63,7 @@
                                 if (thisNode == otherNode) {
                                     weights[thisNode.id][otherNode.id] = 0;
                                 } else if (!weights[thisNode.id][otherNode.id]) {
-                                    var weight = data.edges[thisNode.id][otherNode.id] * Math.min(width, height) * 0.5 + (2 * (thisNode.radius + otherNode.radius));
+                                    var weight = data.edges[thisNode.id][otherNode.id] * Math.min(width, height) * 0.4 + (2 * (thisNode.radius + otherNode.radius));
                                     weights[thisNode.id][otherNode.id] = weight;
                                     weights[otherNode.id][thisNode.id] = weight;
                                 }
@@ -66,7 +75,8 @@
                         // draw nodes
                         $.each(data.nodes, function(idx, node) {
                             var color = Math.round(255 * node.color);
-                            svg.circle(node.pos.x, node.pos.y, node.radius, {id: node.id, fill: 'rgb(' + color + ', 0, ' + (255 - color) + ')', stroke: '#000000', strokeWidth: 1, opacity: 0.85});
+                            svg.circle(node.pos.x, node.pos.y, node.radius, {id: node.id, stroke: 'rgb(' + color + ', 0, ' + (255 - color) + ')', fill: '#333333', strokeWidth: 2, strokeOpacity: 0.85, fillOpacity:0.65});
+                            svg.text(node.pos.x, node.pos.y, node.name, {id: 'label-' + node.id, fill: '#dddddd', style: 'font-size: 10px; font-family: verdana, sans-serif; text-anchor: middle; dominant-baseline: middle;'});
                         });
                     })
                 }})

@@ -41,7 +41,7 @@ graphcalc = {
         
         while(true) {
             var force = graphcalc.calculateForce(nodes, edges);
-            verbose && sys.puts("Average force: " + force);
+            verbose && console.log("Average force: " + force);
             graphcalc.applyForce(nodes, edges, epsilon);
             
             var total = 0;
@@ -50,9 +50,9 @@ graphcalc = {
                     total += Math.abs(edges[thisNode.id][otherNode.id] - graphcalc.distance(thisNode.pos, otherNode.pos));
                 })
             })
-            verbose && sys.puts("Average difference: " + (total / nodes.length));
+            verbose && console.log("Average difference: " + (total / nodes.length));
             if (force < cutoff) {
-                verbose && sys.puts("Done");
+                verbose && console.log("Done");
                 break;
             }
         }
