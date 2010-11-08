@@ -56,6 +56,22 @@ for row in r.fetchall():
     conn.execute('insert into candidates (' + ','.join(can.keys()) + ') values (' + ','.join('?' * len(can.keys())) + ')', can.values())
 
 c.execute('create unique index if not exists pk on candidates (id)')
+
+# Now let's try to fix the remaining names
+for row in c.execute('select distinct cand_nam from orig_data where can_id = \'\'').fetchall():
+    name = helpers.standardize_politician_name(row[0]).split(" ")
+    first = name[0]
+    last = name[-1]
+    
+    matches = c.execute('select name, ext_id from candidates where name like "' + first + '%" and name like "%' + last + '" order by total desc').fetchall()
+    
+    if len(matches) > 0:
+        print "Updating %s to %s..." % (row[0], matches[0][0])
+        c.execute('update orig_data set can_id = ? where cand_nam = ?', (matches[0][1], row[0]))
+        print "Updated %s records." % c.rowcount
+# Recalculate totals
+for row in c.execute('select id, ext_id from candidates').fetchall():
+    c.execute('update candidates set total = (select sum(exp_amo) from orig_data where can_id = ?) where id = ?', (row[1], row[0]))
 conn.commit()
 
 # organizations

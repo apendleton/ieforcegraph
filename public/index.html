@@ -44,6 +44,10 @@
                         var minTotal = _.min(totals);
                         var maxTotal = _.max(totals);
                         
+                        var weights = _.reduce(_.map(data.edges, function(item) { return _.map(item, function(item2) { return item2; }) }), function(a, b) { return a.concat(b); }, []);
+                        var minWeight = _.min(_.filter(weights, function(a) { return a != 0; }))
+                        var maxWeight = _.max(weights);
+                        
                         // set the initial values
                         $.each(data.nodes, function(idx, node) {
                             node.pos = {
@@ -63,7 +67,7 @@
                                 if (thisNode == otherNode) {
                                     weights[thisNode.id][otherNode.id] = 0;
                                 } else if (!weights[thisNode.id][otherNode.id]) {
-                                    var weight = data.edges[thisNode.id][otherNode.id] * Math.min(width, height) * 0.4 + (2 * (thisNode.radius + otherNode.radius));
+                                    var weight = scale(data.edges[thisNode.id][otherNode.id], minWeight, maxWeight, 0, 1) * Math.min(width, height) * 0.4 + (2 * (thisNode.radius + otherNode.radius));
                                     weights[thisNode.id][otherNode.id] = weight;
                                     weights[otherNode.id][thisNode.id] = weight;
                                 }

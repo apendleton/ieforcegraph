@@ -11,15 +11,17 @@ graphcalc = {
             thisNode.force = {x: 0, y: 0};
             _.each(nodes, function(otherNode) {
                 if (thisNode.id != otherNode.id) {
-                    var d = graphcalc.distance(thisNode.pos, otherNode.pos);
-                    var err = edges[thisNode.id][otherNode.id] - d;
-                    var factor = err / d;
-                    var force = {
-                        x: factor * (thisNode.pos.x - otherNode.pos.x),
-                        y: factor * (thisNode.pos.y - otherNode.pos.y)
+                    if (typeof edges[thisNode.id] != 'undefined' && typeof edges[thisNode.id][otherNode.id] != 'undefined') {
+                        var d = graphcalc.distance(thisNode.pos, otherNode.pos);
+                        var err = edges[thisNode.id][otherNode.id] - d;
+                        var factor = err / d;
+                        var force = {
+                            x: factor * (thisNode.pos.x - otherNode.pos.x),
+                            y: factor * (thisNode.pos.y - otherNode.pos.y)
+                        }
+                        thisNode.force.x += force.x;
+                        thisNode.force.y += force.y;
                     }
-                    thisNode.force.x += force.x;
-                    thisNode.force.y += force.y;
                 }
             })
             totalForce += graphcalc.distance({x: 0, y: 0}, thisNode.force);
