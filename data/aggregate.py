@@ -16,8 +16,9 @@ for thisOne in candidates:
         dollars_result = c.execute(
             "select can_id, sum(exp_amo) from orig_data where spe_id in " +
             "(select distinct organizations.ext_id from orig_data as o1, orig_data as o2, organizations " +
-            "where o1.spe_id = organizations.ext_id and o2.spe_id = organizations.ext_id and o1.can_id = ? and o2.can_id = ?) " +
-            "and can_id in (?, ?) group by can_id",
+            "where o1.spe_id = organizations.ext_id and o2.spe_id = organizations.ext_id and o1.can_id = ? and o2.can_id = ? " +
+            "and upper(o1.sup_opp) = 'S' and upper(o2.sup_opp) = 'S')" +
+            "and upper(sup_opp) = 'S' and can_id in (?, ?) group by can_id",
             (thisOne[1], otherOne[1], thisOne[1], otherOne[1])
         )
         dollars = dict(dollars_result.fetchall())
