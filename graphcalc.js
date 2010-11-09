@@ -10,13 +10,10 @@ graphcalc = {
         _.each(nodes, function(thisNode) {
             thisNode.force = {x: 0, y: 0};
             _.each(nodes, function(otherNode) {
-                console.log(typeof edges[thisNode.id], typeof edges[thisNode.id][otherNode.id])
                 if (thisNode.id != otherNode.id && typeof edges[thisNode.id] != 'undefined' && typeof edges[thisNode.id][otherNode.id] != 'undefined') {
-                    console.log('entered');
                     var d = graphcalc.distance(thisNode.pos, otherNode.pos);
                     var err = edges[thisNode.id][otherNode.id] - d;
                     var factor = err / d;
-                    console.log(d, err, factor);
                     var force = {
                         x: factor * (thisNode.pos.x - otherNode.pos.x),
                         y: factor * (thisNode.pos.y - otherNode.pos.y)
@@ -45,16 +42,8 @@ graphcalc = {
         while(true) {
             var force = graphcalc.calculateForce(nodes, edges);
             verbose && console.log("Average force: " + force);
-            return;
             graphcalc.applyForce(nodes, edges, epsilon);
             
-            var total = 0;
-            _.each(nodes, function(thisNode) {
-                _.each(nodes, function(otherNode) {
-                    total += Math.abs(edges[thisNode.id][otherNode.id] - graphcalc.distance(thisNode.pos, otherNode.pos));
-                })
-            })
-            verbose && console.log("Average difference: " + (total / nodes.length));
             if (force < cutoff) {
                 verbose && console.log("Done");
                 break;

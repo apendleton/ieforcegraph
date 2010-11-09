@@ -32,9 +32,6 @@ app.get('/data', function(req, res) {
         function(error, can_rows, org_rows) {
             out.nodes = can_rows.concat(org_rows);
             
-            console.log(can_rows);
-            console.log(org_rows);
-            
             var can_ids = _.map(can_rows, function(item) { return item.oid; });
             var org_ids = _.map(org_rows, function(item) { return item.oid; });
             db.execute('select "o" || organization_id as organization_id, "c" || candidate_id as candidate_id, weight from can_org_weights where candidate_id in (' + can_ids.join(',') + ') and organization_id in (' + org_ids.join(',') + ')', this);

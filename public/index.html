@@ -61,7 +61,6 @@
                             if (node.id.charAt(0) == 'o') {
                                 node.color = parseFloat(node.partisanship);
                             }
-                            console.log(node);
                         })
                         
                         // calculate edges
@@ -72,17 +71,19 @@
                                 if (!weights[otherNode.id]) weights[otherNode.id] = {}
                                 if (thisNode == otherNode) {
                                     weights[thisNode.id][otherNode.id] = 0;
-                                } else if (!weights[thisNode.id][otherNode.id]) {
+                                } else if (typeof data.edges[thisNode.id] != 'undefined' && typeof data.edges[thisNode.id][otherNode.id] != 'undefined' && !weights[thisNode.id][otherNode.id]) {
                                     var weight = scale(data.edges[thisNode.id][otherNode.id], minWeight, maxWeight, 0, 1) * Math.min(width, height) * 0.4 + (2 * (thisNode.radius + otherNode.radius));
+                                    weights[thisNode.id][otherNode.id] = weight;
+                                    weights[otherNode.id][thisNode.id] = weight;
+                                } else if (!weights[thisNode.id][otherNode.id]) {
+                                    var weight = scale(1, minWeight, maxWeight, 0, 1) * Math.min(width, height) * 0.4 + (2 * (thisNode.radius + otherNode.radius));
                                     weights[thisNode.id][otherNode.id] = weight;
                                     weights[otherNode.id][thisNode.id] = weight;
                                 }
                             })
                         });
                         
-                        console.log(data.nodes);
-                        console.log(weights);
-                        // graphcalc.run(data.nodes, weights, epsilon, force_cutoff, true);
+                        graphcalc.run(data.nodes, weights, epsilon, force_cutoff);
                         
                         // draw nodes
                         $.each(data.nodes, function(idx, node) {
