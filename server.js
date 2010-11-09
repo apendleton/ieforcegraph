@@ -2,7 +2,8 @@ var sys = require('sys'),
     underscore = require('underscore'),
     express = require('express'),
     calc = require('./graphcalc'),
-    sqlite = require('sqlite');
+    sqlite = require('sqlite'),
+    step = require('step');
 
 var width = 500;
 var height = 500;
@@ -19,33 +20,47 @@ app.use(express.staticProvider(__dirname + '/public'));
 app.get('/', function(req, res) { res.sendfile(__dirname + '/public/index.html'); })
 
 app.get('/data', function(req, res) {
-    db.execute('select id, name, party, total from candidates order by total desc limit 25', function(error, rows) {
-        var out = {}
-        if (error) { sys.log(error); return; }
-        out.nodes = rows;
+    var out = {}
+    step(
+        // make some queries
+        function() {
+            db.execute('select id as oid, "c" || id as id, name, party, total from candidates order by total desc limit 25', this.parallel());
+            db.execute('select id as oid, "o" || id as id, name, partisanship, total from organizations order by total desc limit 25', this.parallel());
+        },
         
-        var ids = _.map(rows, function(item) { return item.id; });
-        console.log('select * from can_can_weights where candidate1_id in (' + ids.join(',') + ') and candidate2_id in (' + ids.join(',') + ')')
-        db.execute('select * from can_can_weights where candidate1_id in (' + ids.join(',') + ') and candidate2_id in (' + ids.join(',') + ')', function(error, rows) {
+        // do some stuff with the results
+        function(error, can_rows, org_rows) {
+            out.nodes = can_rows.concat(org_rows);
+            
+            console.log(can_rows);
+            console.log(org_rows);
+            
+            var can_ids = _.map(can_rows, function(item) { return item.oid; });
+            var org_ids = _.map(org_rows, function(item) { return item.oid; });
+            db.execute('select "o" || organization_id as organization_id, "c" || candidate_id as candidate_id, weight from can_org_weights where candidate_id in (' + can_ids.join(',') + ') and organization_id in (' + org_ids.join(',') + ')', this);
+        },
+        
+        // aggregate the edges and send a response
+        function(error, edge_rows) {
             if (error) { sys.log(error); return; }
             
             var edges = {}
-            _.each(rows, function(edge) {
-                var cid1 = parseInt(edge.candidate1_id);
-                var cid2 = parseInt(edge.candidate2_id);
-                if (!edges[cid1]) edges[cid1] = {};
-                edges[cid1][cid2] = parseFloat(edge.weight);
+            _.each(edge_rows, function(edge) {
+                var id1 = edge.organization_id;
+                var id2 = edge.candidate_id;
+                if (!edges[id1]) edges[id1] = {};
+                edges[id1][id2] = parseFloat(edge.weight);
                 
-                if (!edges[cid2]) edges[cid2] = {};
-                edges[cid2][cid1] = parseFloat(edge.weight);
+                if (!edges[id2]) edges[id2] = {};
+                edges[id2][id1] = parseFloat(edge.weight);
             })
             
             out.edges = edges;
             
             res.header('Content-Type', 'application/json');
             res.send(JSON.stringify(out));
-        });
-    })
+        }
+    )
 })
 
 app.listen(3000);

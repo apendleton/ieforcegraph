@@ -10,7 +10,7 @@ commas = re.compile(r'[^0-9]')
 
 # candidates
 conn.execute('drop table if exists candidates')
-conn.execute('create table candidates (id integer primary key autoincrement not null, name text, ext_id text, party char(1), state text, district text, seat text, total float)')
+conn.execute('create table candidates (id integer primary key autoincrement not null, name text, ext_id text, party char(1), state text, district text, seat text, total_for float, total_against float, total float)')
 r = c.execute('select distinct can_id from orig_data where can_id != \'\'')
 for row in r.fetchall():
     id = row[0]
@@ -51,7 +51,13 @@ for row in r.fetchall():
     can['seat'] = matches[0][7]
     
     # total: get all of the pro-candidate dollars and sum them
-    can['total'] = sum(map(lambda s: int('0' + commas.sub('', s[9])), filter(lambda m: m[12] == 'S', matches)))
+    can['total_for'] = sum(map(lambda s: int('0' + commas.sub('', s[9])), filter(lambda m: m[12] == 'S', matches)))
+    
+    # same for anti
+    can['total_against'] = sum(map(lambda s: int('0' + commas.sub('', s[9])), filter(lambda m: m[12] == 'O', matches)))
+    
+    # total
+    can['total'] = can['total_for'] + can['total_against']
     
     conn.execute('insert into candidates (' + ','.join(can.keys()) + ') values (' + ','.join('?' * len(can.keys())) + ')', can.values())
 
@@ -71,12 +77,14 @@ for row in c.execute('select distinct cand_nam from orig_data where can_id = \'\
         print "Updated %s records." % c.rowcount
 # Recalculate totals
 for row in c.execute('select id, ext_id from candidates').fetchall():
-    c.execute('update candidates set total = (select sum(exp_amo) from orig_data where can_id = ?) where id = ?', (row[1], row[0]))
+    c.execute('update candidates set total_for = (select sum(exp_amo) from orig_data where can_id = ? and sup_opp = "S") where id = ?', (row[1], row[0]))
+    c.execute('update candidates set total_against = (select sum(exp_amo) from orig_data where can_id = ? and sup_opp = "O") where id = ?', (row[1], row[0]))
+    c.execute('update candidates set total = total_for + total_against where id = ?', (row[0],))
 conn.commit()
 
 # organizations
 conn.execute('drop table if exists organizations')
-conn.execute('create table organizations (id integer primary key autoincrement not null, name text, ext_id text, partisanship float, total float)')
+conn.execute('create table organizations (id integer primary key autoincrement not null, name text, ext_id text, partisanship float, total_for float, total_against float, total float)')
 r = c.execute('select distinct spe_id from orig_data where spe_id != \'\'')
 for row in r.fetchall():
     id = row[0]
@@ -94,7 +102,9 @@ for row in r.fetchall():
     org['partisanship'] = 0
     
     # total: get all of the money spent by the org
-    org['total'] = sum(map(lambda s: int('0' + commas.sub('', s[9])), matches))
+    org['total_for'] = sum(map(lambda s: int('0' + commas.sub('', s[9])), filter(lambda m: m[12] == 'S', matches)))
+    org['total_against'] = sum(map(lambda s: int('0' + commas.sub('', s[9])), filter(lambda m: m[12] == 'O', matches)))
+    org['total'] = org['total_for'] + org['total_against']
     
     conn.execute('insert into organizations (' + ','.join(org.keys()) + ') values (' + ','.join('?' * len(org.keys())) + ')', org.values())
 

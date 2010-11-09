@@ -55,7 +55,13 @@
                                 y: regScale(Math.random(), minY, maxY)
                             }
                             node.radius = scale(node.total, minTotal, maxTotal, minRadius, maxRadius);
-                            node.color = node.party == 'R' ? 1 : 0;
+                            if (node.id.charAt(0) == 'c') {
+                                node.color = node.party == 'R' ? 1 : 0;
+                            }
+                            if (node.id.charAt(0) == 'o') {
+                                node.color = parseFloat(node.partisanship);
+                            }
+                            console.log(node);
                         })
                         
                         // calculate edges
@@ -74,7 +80,9 @@
                             })
                         });
                         
-                        graphcalc.run(data.nodes, weights, epsilon, force_cutoff);
+                        console.log(data.nodes);
+                        console.log(weights);
+                        // graphcalc.run(data.nodes, weights, epsilon, force_cutoff, true);
                         
                         // draw nodes
                         $.each(data.nodes, function(idx, node) {
